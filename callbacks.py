@@ -7,7 +7,7 @@ import pandas as pd
 from app import app
 import datetime as dt
 import dash_core_components as dcc
-from vas_functions import search_for_datafiles, scatter_graph, parse_data
+from vas_functions import search_for_datafiles, scatter_graph, parse_data, params
 from dash.exceptions import PreventUpdate
 import json
 
@@ -56,44 +56,108 @@ def update_graph(value):
         fig = scatter_graph(df)
     return fig
 
-@app.callback([Output('imported-data-table', 'children'),
-              Output('tag-options','options')],
-              [Input('datafiles-dropdown1', 'value')])
-def update_table_and_dropdown(value):
+#@app.callback(Output('visible_table', 'children'),
+#              [Input('memory', 'data'),
+#               Input('hidden_table','selected_columns')])
+#def test(memory,cells):
+#    if memory is None:
+#        #memory = {}
+#        raise PreventUpdate
+#        table = html.Div(['no data yet'])
+#    else:
+#        data = pd.DataFrame()
+#        data = data.from_dict(memory, orient='columns')
+#        #data = data.sort_index()
+##        print(cells)
+#        list_of_sel_columns = []
+#        if cells is not None:
+#            list_of_sel_columns = cells
+#        else:
+#            list_of_sel_columns = []
+##        if cells is not None:
+##            for item in cells:
+##                list_of_sel_columns.append(data.columns.values.tolist().index(item))
+#            
+#        columns = data.keys().to_list()
+#        table = html.Div([
+#                dash_table.DataTable(
+#                    id='hidden_table',
+#                    data=data.to_dict('rows'),
+#                    columns=[{'name': i, 'id': i, "selectable": True} for i in columns],#
+#                    editable=True,
+#                    virtualization=True,
+#                    column_selectable="multi",
+#                    selected_columns=list_of_sel_columns,
+#                    page_action="native",
+#                    page_current= 0,
+#                    page_size= 5,
+#                    ),])
+#    return table
+    
+
+@app.callback([Output('visible_table', 'children'),
+               Output('tag-options','options')],
+              [Input('datafiles-dropdown1', 'value'),
+               Input('hidden_table','selected_columns')])
+def update_table_and_dropdown(value,selected_columns):
     if value == 'default':
         return html.H5('no datafile selected'),[{"label": 'none', "value": 'none'}]
     else:
         file = os.getcwd()+'\\input_data\\' + value
         df = pd.read_json(file)
         df=df.sort_index()
+#        print(selected_columns)
+        list_of_sel_columns = []
+        if selected_columns is not None:
+            list_of_sel_columns = selected_columns
+        else:
+            list_of_sel_columns = []
+        
+        Date_index = df.columns.values.tolist().index('Date')
+        df = df.set_index(df.columns[Date_index])        
+        descriptive_data = params(df)
         table = html.Div([
             dash_table.DataTable(
-                data=df.to_dict('rows'),
-                columns=[{'name': i, 'id': i} for i in df.columns],#, "selectable": True
+                id='hidden_table',
+                data=descriptive_data.to_dict('rows'),
+                columns=[{'name': i, 'id': i, "selectable": True} for i in descriptive_data.columns],#
                 editable=True,
                 virtualization=True,
-                #column_selectable="multi",
-                #selected_columns=[],
+                column_selectable="multi",
+                selected_columns=list_of_sel_columns,
                 page_action="native",
                 page_current= 0,
-                page_size= 5,
+                page_size= 8
                 ),])
+        
         options=[{"label": i, "value": i} for i in df.columns.values.tolist()[1:]]
     return table, options
 
 @app.callback(Output('import-graph', 'figure'),#Output()'test', 'children'
               [Input('memory', 'data'),
-               Input('tag-options','value')])
-def on_data_set_graph(raw_data,tags):
-    if tags is None:
+               Input('tag-options','value'),
+               Input('hidden_table','selected_columns')])
+def on_data_set_graph(raw_data,tags,selected):
+#    if tags is None:
+#        print(selected)
+#        return go.Figure()
+    if raw_data == {}:
         return go.Figure()
+
+        
         #return html.H5('no filtered tags')
-    data = pd.DataFrame()
-    data = data.from_dict(raw_data, orient='columns')
-    data = data.sort_index()
-    Date_index = data.columns.values.tolist().index('Date')
-    df = data.set_index(data.columns[Date_index])
-    fig = scatter_graph(df[tags])
+#    print(selected)
+
+    if selected is None:
+        return go.Figure()
+    else:
+        selected_columns = selected
+        data = pd.DataFrame()
+        data = data.from_dict(raw_data, orient='columns')
+        data = data.sort_index()
+        Date_index = data.columns.values.tolist().index('Date')
+        df = data.set_index(data.columns[Date_index])
+        fig = scatter_graph(df[selected_columns])
     return fig
 #    return dash_table.DataTable(
 #            id='test-table',

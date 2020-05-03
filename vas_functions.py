@@ -4,6 +4,7 @@ import base64
 import io
 import pandas as pd
 import dash_html_components as html
+import numpy as np
 
 
 #template = "plotly"
@@ -54,7 +55,7 @@ def scatter_graph(df):
                       #,paper_bgcolor="#FFFFFF"
                       #,plot_bgcolor="#FFFFFF"
                       ,template=template
-                      ,modebar=dict(orientation='h',bgcolor='rgba(0,0,0,0)')
+                      ,modebar=dict(orientation='v',bgcolor='rgba(0,0,0,0.1)')
 
                       )
     
@@ -83,3 +84,34 @@ def parse_data(contents, filename):
         print(e)
         return html.Div(['There was an error processing this file.'])
     return df
+
+def params(df):
+    columns = ['param'] + df.keys().to_list()[2:]
+    max_list = ['Max']
+    min_list = ['Min']
+    median_list = ['Median']
+    mean_list = ['Mean']
+    std_list = ['StdDev']
+    nans = ['Nans']
+    for index_label in df.keys().to_list()[2:]:
+        max_list.append(
+                        np.round(np.nanmax(df['{}'.format(index_label)].to_list()),1)
+                       )
+        min_list.append(
+                    np.round(np.nanmin(df['{}'.format(index_label)].to_list()),1)
+                   )
+        median_list.append(
+                    np.round(np.nanmedian(df['{}'.format(index_label)].to_list()),1)
+                   )
+        mean_list.append(
+                    np.round(np.nanmean(df['{}'.format(index_label)].to_list()),1)
+                   )
+        std_list.append(
+                    np.round(np.nanstd(df['{}'.format(index_label)].to_list()),1)
+                   )
+        nans.append(np.any(np.isnan(df['{}'.format(index_label)].to_list())))
+                
+    max_list = [(max_list),(min_list),(median_list),(mean_list),(std_list),(nans)]
+    df = pd.DataFrame.from_records(max_list, columns=columns)
+    return df
+    

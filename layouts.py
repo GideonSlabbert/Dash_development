@@ -29,7 +29,7 @@ import_graph_style = {'width': '100%',
                'borderRadius': '5px',
                'borderWidth': '1px',
                'borderColor': 'black',
-               'height': '200px',
+               'height': '270px',
                'paper_bgcolor':'#FFFFFF',
                'plot_bgcolor':'#FFFFFF'     
                }
@@ -83,7 +83,10 @@ table_layout = html.Div([
     dcc.Link('Screening Table', href='/apps/Screening_Table',style=sel_link_style),
     #dynamic elements:
     html.Div([
-    html.Div(id='imported-data-table'),#,style={'width': '70%', 'float':'left'}
+#    html.Div(id='imported-data-table'),
+#    html.Div(id = 'imported-data-table', data=[{}])),
+    html.Div(id = 'visible_table'),
+    html.Div(dt.DataTable(id = 'hidden_table', data=[{}]), style={'display': 'none'}),#,style={'width': '70%', 'float':'left'}
         #html.Div(id='tag-options',style={'width': '29%', 'float':'left'}),
     html.Div(id='tag-selection'),
         dcc.Dropdown(
@@ -92,6 +95,7 @@ table_layout = html.Div([
                     placeholder="Select tags to trend",
                     searchable=True
                     #style={'width': '29%', 'float':'right'}
+                    , style={'display': 'none'}
                     )
             ]),
     html.Div(id='test'),
