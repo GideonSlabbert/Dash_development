@@ -6,6 +6,7 @@ import dash_table
 import pandas as pd
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminderDataFiveYear.csv')
 
+
 countries = set(df['country'])
 
 uploader_style = {'width': '100%',

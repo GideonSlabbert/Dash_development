@@ -10,10 +10,39 @@ import dash_core_components as dcc
 from vas_functions import search_for_datafiles, scatter_graph, parse_data, params
 from dash.exceptions import PreventUpdate
 import json
+import glob
+faultmap_data_path = "C:\FaultMap_data/faultmap_results_ss"
+faultmap_files = glob.glob(faultmap_data_path + "/**/*csv*", recursive=True)
 
-@app.callback([Output('datafiles-dropdown1', 'options'),
+#use .replace to remove path from file names
+faultmap_files_cleaned = [file.replace(faultmap_data_path, '') for file in faultmap_files]
+
+#use .partition to extract a list of all the first folder names
+#                           first partition using "\\" target
+#                                          specify which element in the partition to extract - 2nd element is the string after the target "\\"
+#                                              do a second partition with the target "\\" and this time extract the elemtn before the target
+faultmap_files_main = [
+                        [file.partition("\\")[2].partition("\\")[0] for file in faultmap_files_cleaned],
+                        [file for file in faultmap_files_cleaned]
+                        ]
+# use set() to filter out unique entries an convert back to a list
+faultmap_files_main = list(set(faultmap_files_main[0]))
+
+@app.callback([Output('faultmap_files_sub', 'options')],
+              [Input('faultmap_files_main', 'value')])
+def update_faultmap_files_dropdown(value):
+    if value == 'default':
+        raise PreventUpdate
+        filtered_files = ['no file selected']
+    else:
+        filtered_files = [file for index,file in enumerate(faultmap_files_main[1]) if faultmap_files_main[0][index] == value]
+        if len(filtered_files) == 0:
+            filtered_files = ['no entries found']
+    return [{'label': file, 'value': file} for file in filtered_files]#, data_to_store
+
+@app.callback([Output('datafiles-dropdown', 'options'),
                Output('memory','data')],
-              [Input('datafiles-dropdown1', 'value')])
+              [Input('datafiles-dropdown', 'value')])
 def update_date_dropdown(value):
     if value == 'default':
         data_to_store = {}
@@ -44,7 +73,7 @@ def import_data(contents, filename):
                             columns=[{'name': i, 'id': i} for i in data.columns])])
     return table
 	   
-@app.callback(Output('Mygraph', 'figure'),[Input('datafiles-dropdown1', 'value')])
+@app.callback(Output('Mygraph', 'figure'),[Input('datafiles-dropdown', 'value')])
 def update_graph(value):
     if value == 'default':
         fig = go.Figure()
@@ -97,7 +126,7 @@ def update_graph(value):
 
 @app.callback([Output('visible_table', 'children'),
                Output('tag-options','options')],
-              [Input('datafiles-dropdown1', 'value'),
+              [Input('datafiles-dropdown', 'value'),
                Input('hidden_table','selected_columns')])
 def update_table_and_dropdown(value,selected_columns):
     if value == 'default':
