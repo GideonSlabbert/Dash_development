@@ -6,7 +6,6 @@ import pandas as pd
 import dash_html_components as html
 import numpy as np
 
-
 #template = "plotly"
 #template = "plotly_white"
 #template = "ggplot2"
@@ -14,6 +13,7 @@ import numpy as np
 #template = "seaborn"
 template = "simple_white"
 #template = "none"
+
 
  
 def search_for_datafiles():
