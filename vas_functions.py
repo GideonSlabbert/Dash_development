@@ -15,7 +15,6 @@ template = "simple_white"
 #template = "none"
 
 
- 
 def search_for_datafiles():
     path = os.getcwd()+'\\input_data'
 
@@ -72,14 +71,14 @@ def parse_data(contents, filename):
     try:
         if 'csv' in filename:
             # Assume that the user uploaded a CSV or TXT file
-            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')), header=None)
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
+            df = pd.read_excel(io.BytesIO(decoded), header=None)
         elif 'txt' or 'tsv' in filename:
             # Assume that the user upl, delimiter = r'\s+'oaded an excel file
             df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')), delimiter = r'\s+')
+                io.StringIO(decoded.decode('utf-8')), delimiter = r'\s+', header=None)
     except Exception as e:
         print(e)
         return html.Div(['There was an error processing this file.'])

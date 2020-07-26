@@ -8,25 +8,29 @@ dropdown_style = {"font-size": "small"}
 from faultmap_search import faultmap_file_extraction
 
 faultmap_data = faultmap_file_extraction("C:\FaultMap_data/faultmap_results_ss","/**/*csv*")
-#faultmap_data_path = "C:\FaultMap_data/faultmap_results_ss"
-#faultmap_files = glob.glob(faultmap_data_path + "/**/*csv*", recursive=True)
+
+uploader_style = {'width': '100%',
+                  'height': '35px',
+                  'lineHeight': '35px',
+                  'borderWidth': '1px',
+                  'borderStyle': 'dashed',
+                  'borderRadius': '5px',
+                  'textAlign': 'center'
+                  }
 
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.H5(children='Visual Analytic System',style={'textAlign':'center'}),
-	html.H5(children='Fault Detection and Diagnosis',style={'textAlign':'center'}),
-    dcc.Dropdown(id='datafiles-dropdown', options=[{'label': 'files', 'value': 'default'}],
-                 value='default'),
-    html.Div(id='page-content'),
-    dcc.Dropdown(id='faultmap_files_main', options=[{'label': file, 'value': file} for file in faultmap_data.first_level_folder_options()],
-                 value='default', style=dropdown_style),
-    dcc.Dropdown(id='faultmap_files_sub', options=[{'label': 'files', 'value': 'default'}],
-                 value='default'),
-    dcc.Store(id='memory'),
-    dcc.Store(id='faultmap_files',data=faultmap_data.main_file_list())
+    dcc.Location(id=      'url', refresh=False),
+    html.H5(     children='Visual Analytic System',style={'textAlign':'center'}),
+	html.H5(     children='Fault Detection and Diagnosis',style={'textAlign':'center'}),
+    dcc.Dropdown(id=      'datafiles_dropdown', options=[{'label': 'files', 'value': 'default'}],value='default'),
+    dcc.Upload(  id=      'upload_selected_files', children=html.Div(['Drag and drop or ', html.A('"Click" to select files')]),style=uploader_style, multiple=True),
+    dcc.Store(   id=      'datafiles_dropdown_memory'),
+    dcc.Store(   id=      'faultmap_files_memory',data=faultmap_data.main_file_list()),
+    dcc.Store(   id=      'store_selected_files',data={}),
+    html.Div(    id=      'page_content')
 ])
 
-@app.callback(Output('page-content', 'children'),
+@app.callback(Output('page_content', 'children'),
               [Input('url', 'pathname')])      
 def display_page(pathname):
     if pathname == '/apps/Screening_Graph':
