@@ -54,9 +54,6 @@ import_layout  = html.Div([
     dcc.Link('Screening Graph', href='/apps/Screening_Graph',style=unsel_link_style),
     dcc.Link('Screening Table', href='/apps/Screening_Table',style=unsel_link_style),
     #dynamic elements:
-    html.Div(children='''Step 1: Import data from excel/csv/textfile file'''),
-    dcc.Upload(id='upload-data',children=html.Div(['Drag and Drop or ', html.A('Select Files')]),style=uploader_style,multiple=True),
-    html.Div(id='current_datafiles')
 ])
 
 graph_layout  = html.Div([
@@ -65,8 +62,11 @@ graph_layout  = html.Div([
     dcc.Link('Screening Graph', href='/apps/Screening_Graph',style=sel_link_style),
     dcc.Link('Screening Table', href='/apps/Screening_Table',style=unsel_link_style),
     #dynamic elements:
+    html.Div('Example Div', style={'color': 'blue', 'fontSize': 14})
     dcc.Dropdown(id='uploaded_files_dropdown', options=[{'label': 'files', 'value': 'default'}], value='default'),
-    html.Div(id = 'uploaded_files_table'),
+    html.Div(dt.DataTable(id = 'hidden_view_table', data=[{}]), style={'display': 'none'}),
+    html.Div(id='uploaded_files_table'),
+    html.Div(id = 'view_table'),
     dcc.Graph(id='Mygraph',style=screening_graph_style)
 ])
 
@@ -76,17 +76,4 @@ table_layout = html.Div([
     dcc.Link('Screening Graph', href='/apps/Screening_Graph',style=unsel_link_style),
     dcc.Link('Screening Table', href='/apps/Screening_Table',style=sel_link_style),
     #dynamic elements:
-    html.Div([
-        html.Div(id = 'visible_table'),
-        html.Div(dt.DataTable(id = 'hidden_table', data=[{}]), style={'display': 'none'}),
-        html.Div(id='tag-selection'),
-            dcc.Dropdown(
-                        id='tag-options',
-                        multi=True,
-                        placeholder="Select tags to trend",
-                        searchable=True
-                        , style={'display': 'none'}
-                        )
-                ]),
-    dcc.Graph(id='import-graph',style=import_graph_style)
 ])

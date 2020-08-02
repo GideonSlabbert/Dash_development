@@ -22,11 +22,10 @@ app.layout = html.Div([
     dcc.Location(id=      'url', refresh=False),
     html.H5(     children='Visual Analytic System',style={'textAlign':'center'}),
 	html.H5(     children='Fault Detection and Diagnosis',style={'textAlign':'center'}),
-    dcc.Dropdown(id=      'datafiles_dropdown', options=[{'label': 'files', 'value': 'default'}],value='default'),
-    dcc.Upload(  id=      'upload_selected_files', children=html.Div(['Drag and drop or ', html.A('"Click" to select files')]),style=uploader_style, multiple=True),
     dcc.Store(   id=      'datafiles_dropdown_memory'),
-    dcc.Store(   id=      'faultmap_files_memory',data=faultmap_data.main_file_list()),
     dcc.Store(   id=      'store_selected_files',data={}),
+    dcc.Upload(id='upload_selected_files', children=html.Div(['Drag and drop or ', html.A('"Click" to select files')]),
+               style=uploader_style, multiple=True),
     html.Div(    id=      'page_content')
 ])
 
