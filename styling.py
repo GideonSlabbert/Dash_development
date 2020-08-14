@@ -23,7 +23,7 @@ import_graph_style = {'width': '100%',
                'borderRadius': '5px',
                'borderWidth': '1px',
                'borderColor': 'black',
-               'height': '270px',
+               'height': '300px',
                'paper_bgcolor':'#FFFFFF',
                'plot_bgcolor':'#FFFFFF'
                }

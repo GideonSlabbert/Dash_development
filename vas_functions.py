@@ -41,8 +41,8 @@ def scatter_graph(df):
                              #mode='lines+markers'
 							)
                       )
-        fig['layout'].update({'yaxis{}'.format(y_index):dict(visible=False,autorange=True)},
-                             xaxis=dict(rangeslider=dict(visible=True))#,type='date'
+        fig['layout'].update({'yaxis{}'.format(y_index):dict(visible=False,autorange=True)}
+                             #,xaxis=dict(rangeslider=dict(visible=True))#,type='date'
                             )
         
         y_index += 1
