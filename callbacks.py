@@ -9,6 +9,22 @@ import datetime as dt
 from vas_functions import search_for_datafiles, scatter_graph, parse_data, params
 from dash.exceptions import PreventUpdate
 
+def parse_image_contents(contents, filename, date):
+    return html.Div([
+        html.H5(filename),
+        html.H6(dt.datetime.fromtimestamp(date)),
+
+        # HTML images accept base64 encoded strings in the same format
+        # that is supplied by the upload
+        html.Img(src=contents),
+        html.Hr(),
+        html.Div('Raw Content'),
+        html.Pre(contents[0:200] + '...', style={
+            'whiteSpace': 'pre-wrap',
+            'wordBreak': 'break-all'
+        })
+    ])
+
 # store contents of upload component (upload_selected_files) in store component (store_selected_files) by adding to what is already stored there
 @app.callback(Output('store_selected_files', 'data'),
             [Input('upload_selected_files', 'contents'),Input('upload_selected_files', 'filename')],
@@ -63,7 +79,7 @@ def show_selected_file(value,selected_columns,data):
                 columns=[{'name': str(i), 'id': str(i), "selectable": True} for i in df_table.columns],
                 editable=True,
                 virtualization=True,
-                column_selectable="multi",
+                column_selectable="single",
                 selected_columns=list_of_sel_columns,
                 page_action="native",
                 page_current=0,
@@ -72,6 +88,17 @@ def show_selected_file(value,selected_columns,data):
 
         print(list_of_sel_columns)
         return table
+
+@app.callback(Output('data','children'),
+              [Input('hidden_view_table', 'selected_columns'),Input('uploaded_files_dropdown', 'value')],
+              [State('store_selected_files', 'data')])
+def show_selected_data(selected_column,dict_key,data):
+    if selected_column is None:
+        raise PreventUpdate()
+    else:
+        df_table = pd.DataFrame.from_dict(data[dict_key], index_col=selected_column)
+        print(df_table.to_dict('rows'))
+        return html.Div('callback worked')
 
 #@app.callback(Output('import-graph', 'figure'),
 #              [Input('datafiles_dropdown_memory', 'data'),
@@ -91,3 +118,14 @@ def show_selected_file(value,selected_columns,data):
 #        df = data.set_index(data.columns[Date_index])
 #        fig = scatter_graph(df[selected_columns])
 #    return fig
+
+@app.callback(Output('output-image-upload', 'children'),
+              [Input('upload-image', 'contents')],
+              [State('upload-image', 'filename'),
+               State('upload-image', 'last_modified')])
+def update_output(list_of_contents, list_of_names, list_of_dates):
+    if list_of_contents is not None:
+        children = [
+            parse_image_contents(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates)]
+        return children
