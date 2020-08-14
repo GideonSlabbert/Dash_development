@@ -1,5 +1,6 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly.graph_objs as go
 from dash import dash
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
@@ -19,42 +20,16 @@ app.layout = html.Div([
 	html.H5(     children='Fault Detection and Diagnosis',style={'textAlign':'center'}),
     dcc.Store(   id=      'datafiles_dropdown_memory'),
     dcc.Store(   id=      'store_selected_files',data={}),
-    # dynamic elements:
-    # html.Button('Import Page', id='import_page',style=unsel_link_style),
-    # html.Button('Screening Graph', id='screening_graph_page',style=unsel_link_style),
-    # html.Button('Screening Table', id='screening_table_page',style=unsel_link_style),
 
-    dcc.Upload(id='upload_selected_files', children=html.Div(['Drag and drop or ', html.A('"Click" to select files')]),
-               style=uploader_style, multiple=True),
+    # dynamic elements:
+
+    dcc.Upload(id='upload_selected_files', children=html.Div(['Drag and drop or ', html.A('"Click" to select files')]),style=uploader_style, multiple=True),
     html.Div('Dropdown displaying uploaded files:', style={'color': 'black', 'fontSize': 14}),
     dcc.Dropdown(id='uploaded_files_dropdown', options=[{'label': 'files', 'value': 'default'}], value='default'),
     html.Div(dash_table.DataTable(id = 'hidden_view_table', data=[{}]), style={'display': 'none'}),
     html.Div(id='uploaded_files_table'),
-    html.Div(id = 'view_table'),
-    html.Div(id='data'),
-    dcc.Graph(id='Mygraph',style=screening_graph_style),
-    html.Div(    id=      'page_content')
+    dcc.Graph(id='import_graph',style=import_graph_style)
 ])
-
-# populate dropdown component (uploaded_files_dropdown) from the store component (store_selected_files) dictionary keys
-# @app.callback([Output('import_page', 'style'),Output('screening_graph_page', 'style'),Output('screening_table_page', 'style')],
-#               [Input('import_page', 'n_clicks_timestamp'),Input('screening_graph_page', 'n_clicks_timestamp'),Input('screening_table_page', 'n_clicks_timestamp')]
-#               )
-# def change_to_import_page(import_click,screening_graph_click,screening_table_click):
-#     if import_click is None and screening_graph_click is None and screening_table_click is None:
-#         raise PreventUpdate()
-#     if import_click is None:
-#         import_click = 1
-#     if screening_graph_click is None:
-#         screening_graph_click = 1
-#     if screening_table_click is None:
-#         screening_table_click = 1
-#     if int(import_click) > int(screening_graph_click) and int(import_click) > int(screening_table_click):
-#         return sel_link_style,unsel_link_style,unsel_link_style
-#     if int(screening_graph_click) > int(import_click) and int(screening_graph_click) > int(screening_table_click):
-#         return unsel_link_style,sel_link_style,unsel_link_style
-#     if int(screening_table_click) > int(import_click) and int(screening_table_click) > int(screening_graph_click):
-#         return unsel_link_style,unsel_link_style,sel_link_style
 
 # store contents of upload component (upload_selected_files) in store component (store_selected_files) by adding to what is already stored there
 @app.callback(Output('store_selected_files', 'data'),
@@ -94,10 +69,11 @@ def show_selected_file(value,selected_columns,data):
     if value == 'default':
         raise PreventUpdate()
     else:
-        list_of_sel_columns = []
         df_table = pd.DataFrame.from_dict(data[value])
-
-        list_of_sel_columns = []
+        df_table = df_table.sort_index()
+        new_header = df_table.iloc[0]
+        df_table = df_table[1:]
+        df_table.columns = new_header
         if selected_columns is not None:
             list_of_sel_columns = selected_columns
         else:
@@ -107,18 +83,39 @@ def show_selected_file(value,selected_columns,data):
             dash_table.DataTable(
                 id='hidden_view_table',
                 data=df_table.to_dict('rows'),
-                columns=[{'name': str(i), 'id': str(i), "selectable": True} for i in df_table.columns],
+                columns=[{'name': i, 'id':i, "selectable": True} for i in df_table.columns],
                 editable=True,
                 virtualization=True,
-                column_selectable="single",
+                column_selectable="multi",
                 selected_columns=list_of_sel_columns,
                 page_action="native",
                 page_current=0,
                 page_size=8
             ), ])
 
-        print(list_of_sel_columns)
+        #print(list_of_sel_columns)
         return table
+
+@app.callback(Output('import_graph', 'figure'),
+             [Input('uploaded_files_dropdown', 'value'), Input('hidden_view_table', 'selected_columns')],
+             [State('store_selected_files', 'data')])
+def on_data_set_graph(value,selected_columns,data):
+    if value == 'default':
+        raise PreventUpdate()
+    else:
+        df_table = pd.DataFrame.from_dict(data[value])
+        new_header = df_table.iloc[0]
+        df_table = df_table[1:]
+        df_table.columns = new_header
+        df_table = df_table.set_index(df_table.columns[0])
+        df_table = df_table.sort_index()
+
+    if selected_columns != []:
+        fig = scatter_graph(df_table[selected_columns])
+    else:
+        fig = scatter_graph(df_table)
+    return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
